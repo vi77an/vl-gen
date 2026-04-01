@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<!-- feito com amor, carinho e com claudinho -->
+<!-- creditos t.me/vi77an -->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vl@gen:~/luhn.js</title>
+<link rel="shortcut icon" href="favicon.png" />
+<!-- https://www.flaticon.com/free-icon/slaughter_13106772?term=pixel+art&page=1&position=57&origin=tag&related_id=13106772 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0a0a;
+    --surface:   #111111;
+    --border:    #1e1e1e;
+    --border-hi: #2e2e2e;
+    --text:      #e8e8e8;
+    --muted:     #555;
+    --accent:    #ea76cb;
+    --accent-lo: rgba(124,106,255,.12);
+    --green:     #3ddc84;
+    --red:       #ff5f57;
+    --orange:    #ffb347;
+    --mono:      'Geist Mono', monospace;
+    --sans:      'Geist Mono', sans-serif;
+    --radius:    14px;
+    --radius-sm: 8px;
+  }
+
+  html { font-size: 15px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  header {
+    width: 100%;
+    max-width: 540px;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  .wordmark-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .5; transform: scale(.7); }
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 2.1rem;
+    font-weight: 600;
+    letter-spacing: -.03em;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .subtitle {
+    font-size: .85rem;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: .01em;
+  }
+
+  /* ── Card ── */
+  .card {
+    width: 100%;
+    max-width: 540px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+/* oie t.me/vi77an */
+  .card-body { padding: 24px; }
+
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm);
+    transition: border-color .15s, box-shadow .15s;
+    overflow: hidden;
+  }
+  .input-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,106,255,.15);
+  }
+
+  #raw-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 13px 16px;
+    font-family: var(--mono);
+    font-size: .92rem;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: .04em;
+  }
+  #raw-input::placeholder { color: var(--muted); letter-spacing: .02em; }
+
+  .clear-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 13px 14px;
+    color: var(--muted);
+    display: none;
+    align-items: center;
+    transition: color .15s;
+  }
+  .clear-btn:hover { color: var(--text); }
+  .clear-btn.visible { display: flex; }
+
+  .hint {
+    margin-top: 10px;
+    font-size: .75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    line-height: 1.6;
+    min-height: 18px;
+    transition: color .2s;
+  }
+  /* to aki ein t.me/vi77an */
+  .hint.ok   { color: var(--green); }
+  .hint.warn { color: var(--orange); }
+  .hint.err  { color: var(--red); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── Variation selector (shown when complete 16-digit card) ── */
+  #variation-section { display: none; }
+  #variation-section.visible { display: block; }
+
+  .variation-label {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .variation-grid {
+    display: grid;
+    gap: 8px;
+  }
+
+  .var-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-hi);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+  }
+  .var-option:hover { border-color: var(--accent); background: var(--accent-lo); }
+  .var-option.selected { border-color: var(--accent); background: var(--accent-lo); }
+
+  .var-badge {
+    font-family: var(--mono);
+    font-size: .7rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(124,106,255,.18);
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 52px;
+    text-align: center;
+    flex-shrink: 0;
+  } /* hehehe t.me/vi77an */
+  .var-label {
+    font-size: .82rem;
+    color: var(--text);
+    font-family: var(--mono);
+    letter-spacing: .02em;
+  }
+  .var-desc {
+    font-size: .73rem;
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* Extra digit inputs */
+  #extra-digits { display: none; margin-top: 12px; }
+  #extra-digits.visible { display: flex; gap: 8px; align-items: center; }
+
+  .digit-input {
+    width: 44px; height: 44px;
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1rem;
+    text-align: center;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .digit-input:focus { border-color: var(--accent); }
+  .digit-label-small { font-size: .72rem; color: var(--muted); font-family: var(--mono); }
+
+  /* ── Generate button ── */
+  #generate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: .92rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-top: 20px;
+    transition: opacity .15s, transform .1s;
+    position: relative;
+    overflow: hidden;
+  }
+  #generate-btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+  #generate-btn:active:not(:disabled) { transform: translateY(0); }
+  #generate-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading .btn-spinner { display: block; }
+  .loading .btn-text   { opacity: .5; }
+
+  /* ── Results ── */
+  #results { width: 100%; max-width: 540px; margin-top: 16px; }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-title {
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  } /* se lascar boy t.me/vi77an */
+  .result-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .count-badge {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--green);
+    background: rgba(61,220,132,.1);
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border-hi);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: .72rem;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .action-btn:hover { color: var(--text); border-color: var(--accent); }
+  .action-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .result-table-wrap {
+    max-height: 380px;
+    overflow-y: auto;
+  }
+  .result-table-wrap::-webkit-scrollbar { width: 4px; }
+  .result-table-wrap::-webkit-scrollbar-track { background: transparent; }
+  .result-table-wrap::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 4px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 20px;
+    text-align: left;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody td {
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: .83rem;
+    color: var(--text);
+    letter-spacing: .04em;
+  }
+  td.card-num { color: var(--text); }
+  td.mm,
+  td.yy,
+  td.cvv { color: var(--muted); }
+
+  /* row copy on click */
+  tbody tr { cursor: pointer; }
+  tbody tr.flash { background: rgba(124,106,255,.12); }
+
+/* ── Footer ── */
+  footer {
+    margin-top: 56px;
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--muted);
+    letter-spacing: .05em;
+    text-align: center;
+    opacity: .5;
+  }
+
+  /* cor do link no footer */
+  footer a {
+    color: #f5a97f;           /* cor desejada */
+    text-decoration: none;
+    opacity: 1;               /* mantém o link visível mesmo com opacity do footer */
+  }
+
+  /* estado hover/focus */
+  footer a:hover,
+  footer a:focus {
+    color: #f1864d;
+    text-decoration: underline;
+  }
+
+  /* ── Error toast ── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1c1c1c;
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: .82rem;
+    font-family: var(--mono);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.err-toast { border-color: var(--red); color: var(--red); }
+  .toast.ok-toast  { border-color: var(--green); color: var(--green); }
+  /* xau t.me/vi77an */
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">
+    <span class="wordmark-dot"></span>
+    luhn generator
+  </div>
+  <h1>vl@gen:~/</h1>
+  <p class="subtitle">cole o cartão ou padrão com <code style="color:var(--accent);font-size:.85em">x</code> nas posições variáveis</p>
+</header>
+
+<div class="card">
+  <div class="card-body">
+    <label for="raw-input">entrada</label>
+    <div class="input-wrap">
+      <input
+        id="raw-input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="4321678901234xxx|10|27 ou 4321678901234549|10|27"
+      >
+      <button class="clear-btn" id="clear-btn" title="Limpar" tabindex="-1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <p class="hint" id="hint">formatos aceitos: <code style="opacity:.6">CARTÃO|MM|AA</code> · separadores flexíveis · x = dígito variável</p>
+
+    <!-- Variation picker (shown for complete 16-digit cards) -->
+    <div id="variation-section">
+      <div class="divider"></div>
+      <span class="variation-label">Variação</span>
+      <div class="variation-grid" id="variation-grid"></div>
+      <div id="extra-digits"></div>
+    </div>
+
+    <button id="generate-btn" disabled>
+      <div class="btn-spinner"></div>
+      <span class="btn-text">Gerar cartões</span>
+    </button>
+  </div>
+</div>
+
+<div id="results"></div>
+
+<footer>apenas para testes &nbsp;·&nbsp; sem validação real</footer>
+<footer>criado por &nbsp;·&nbsp; <a href="https://t.me/vi77an">vilanele:~$</a></footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Luhn ──────────────────────────────────────────────────────────────────────
+function luhnValid(num) {
+  let total = 0;
+  const rev = num.split('').reverse();
+  for (let i = 0; i < rev.length; i++) {
+    let n = parseInt(rev[i]);
+    if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9; }
+    total += n;
+  }
+  return total % 10 === 0;
+}
+
+function luhnComplete(prefix) {
+  for (let d = 0; d <= 9; d++) {
+    if (luhnValid(prefix + d)) return prefix + d;
+  }
+  return null;
+}
+
+// ── Parse ─────────────────────────────────────────────────────────────────────
+function parseInput(raw) {
+  const parts = raw.trim().split(/[^0-9xX]+/).filter(Boolean);
+  if (!parts.length) throw new Error('Entrada inválida.');
+
+  let card  = parts[0].toLowerCase();
+  let month = parts[1] || '12';
+  let year  = parts[2] || '99';
+
+  if (year.length === 4) year = year.slice(2);
+
+  return { card, month: month.padStart(2,'0'), year, cvv: '000' };
+}
+// @vi77an
+function validateDate(month, year) {
+  const now  = new Date();
+  const nowY = now.getFullYear() % 100;
+  const nowM = now.getMonth() + 1;
+  const y    = parseInt(year, 10);
+  const m    = parseInt(month, 10);
+  if (y > nowY) return true;
+  if (y === nowY && m >= nowM) return true;
+  return false;
+}
+
+function isCompleteCard(card) { return card.length === 16 && /^\d+$/.test(card); }
+function isPartialCard(card)  { return card.length === 16 && card.includes('x'); }
+function isIncompleteCard(card) { return !card.includes('x') && card.length < 16; }
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+function* cartesian(choices) {
+  if (!choices.length) { yield []; return; }
+  for (const head of choices[0])
+    for (const tail of cartesian(choices.slice(1)))
+      yield [head, ...tail];
+}
+// @vi77an
+function generateFromPattern(pattern, month, year) {
+  const xPos = [...pattern].reduce((a, c, i) => (c === 'x' ? [...a, i] : a), []);
+  if (!xPos.length) {
+    return luhnValid(pattern) ? [{ card_number: pattern, month, year, cvv:'000' }] : [];
+  }
+
+  const lastX  = xPos[xPos.length - 1];
+  const fixedX = xPos.slice(0, -1);
+  const cards  = [];
+  const digits = '0123456789'.split('');
+  const choices = fixedX.map(() => digits);
+
+  for (const combo of cartesian(choices)) {
+    const chars = pattern.split('');
+    fixedX.forEach((pos, i) => { chars[pos] = combo[i]; });
+    const prefix = chars.slice(0, lastX).join('');
+    const candidate = luhnComplete(prefix);
+    if (!candidate) continue;
+    const tail = pattern.slice(lastX + 1);
+    const full = candidate + tail;
+    if (full.length !== 16 || !luhnValid(full)) continue;
+    cards.push({ card_number: full, month, year, cvv: '000' });
+  }
+  return cards;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  parsed: null,
+  mode: null,       // 'complete' | 'partial' | 'incomplete'
+  variation: null,  // 0-3 for complete mode
+  extraDigits: [],
+  cards: [],
+};
+
+const $ = id => document.getElementById(id);
+
+// ── UI helpers ─────────────────────────────────────────────────────────────────
+function setHint(msg, cls='') {
+  const h = $('hint');
+  h.textContent = msg;
+  h.className = 'hint ' + cls;
+}
+// @vi77an
+function showToast(msg, type='') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type==='err' ? 'err-toast' : type==='ok' ? 'ok-toast' : '');
+  requestAnimationFrame(() => { t.classList.add('show'); });
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.classList.remove('show'); }, 2200);
+}
+
+function enableGenerate(yes) {
+  $('generate-btn').disabled = !yes;
+}
+
+// ── Input watcher ─────────────────────────────────────────────────────────────
+$('raw-input').addEventListener('input', onInput);
+$('raw-input').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+$('clear-btn').addEventListener('click', () => {
+  $('raw-input').value = '';
+  $('clear-btn').classList.remove('visible');
+  resetState();
+});
+
+function onInput() {
+  const raw = $('raw-input').value.trim();
+  $('clear-btn').classList.toggle('visible', raw.length > 0);
+  resetVariation();
+
+  if (!raw) { resetState(); return; }
+// @vi77an
+  let parsed;
+  try { parsed = parseInput(raw); }
+  catch { setHint('Formato inválido.', 'err'); enableGenerate(false); return; }
+
+  if (!validateDate(parsed.month, parsed.year)) {
+    setHint(`Cartão expirado — ${parsed.month}/${parsed.year}`, 'err');
+    state.parsed = null;
+    enableGenerate(false);
+    return;
+  }
+
+  state.parsed = parsed;
+  const { card } = parsed;
+
+  if (isCompleteCard(card)) {
+    state.mode = 'complete';
+    setHint(`Cartão completo detectado · ${luhnValid(card) ? '✓ Luhn válido' : '✗ Luhn inválido'}`, luhnValid(card) ? 'ok' : 'warn');
+    buildVariationPicker(card, parsed.month, parsed.year);
+    enableGenerate(false); // requires variation pick
+  } else if (isPartialCard(card)) {
+    state.mode = 'partial';
+    const nx = (card.match(/x/g)||[]).length;
+    const est = nx > 1 ? Math.pow(10, nx - 1) : 10;
+    setHint(`Padrão com x · ~${est} combinação(ões) válidas`, 'ok');
+    hideVariation();
+    enableGenerate(true);
+  } else if (isIncompleteCard(card)) {
+    state.mode = 'incomplete';
+    const missing = 16 - card.length;
+    const pattern = card + 'x'.repeat(missing);
+    const est = missing > 1 ? Math.pow(10, missing - 1) : 10;
+    setHint(`Incompleto · completando com ${missing}x → ~${est} válidas`, 'ok');
+    hideVariation();
+    enableGenerate(true); // @vi77an
+  } else {
+    setHint('Formato de cartão inválido.', 'err');
+    state.parsed = null;
+    enableGenerate(false);
+  }
+}
+
+// ── Variation picker ────────────────────────────────────────────────────────── // @vi77an
+function buildVariationPicker(card, month, year) {
+  const prefix12 = card.slice(0, 12);
+  const section  = $('variation-section');
+  const grid     = $('variation-grid');
+  section.classList.add('visible');
+  grid.innerHTML = '';
+  $('extra-digits').className = 'extra-digits';
+
+  const variants = [
+    { badge: '1.000x', label: prefix12 + 'xxxx', desc: '4 variáveis' },
+    { badge:  '100x',  label: prefix12 + '?xxx',  desc: '3 variáveis + 1 seu' },
+    { badge:   '10x',  label: prefix12 + '??xx',  desc: '2 variáveis + 2 seus' },
+  ];
+
+  variants.forEach((v, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'var-option';
+    btn.innerHTML = `
+      <span class="var-badge">${v.badge}</span>
+      <span class="var-label">${v.label.replace(/\?/g,'<span style="color:var(--accent)">?</span>')}</span>
+      <span class="var-desc">${v.desc}</span>
+    `;
+    btn.addEventListener('click', () => selectVariation(i, card, month, year));
+    grid.appendChild(btn);
+  });
+}
+
+function selectVariation(idx, card, month, year) {
+  const prefix12 = card.slice(0, 12);
+  document.querySelectorAll('.var-option').forEach((b,i) => b.classList.toggle('selected', i===idx));
+  state.variation = idx;
+  const ed = $('extra-digits');
+  ed.innerHTML = '';
+  ed.className = 'extra-digits'; // hidden
+
+  if (idx === 0) {
+    state._pattern = prefix12 + 'xxxx';
+    enableGenerate(true);
+  } else if (idx === 1) {
+    ed.className = 'extra-digits visible';
+    ed.innerHTML = `
+      <span class="digit-label-small">13º dígito:</span>
+      <input class="digit-input" id="ed1" maxlength="1" placeholder="0-9">
+    `;
+    $('ed1').addEventListener('input', () => {
+      const d = $('ed1').value;
+      if (/^\d$/.test(d)) { state._pattern = prefix12 + d + 'xxx'; enableGenerate(true); }
+      else enableGenerate(false); // @vi77an
+    });
+    enableGenerate(false);
+  } else if (idx === 2) {
+    ed.className = 'extra-digits visible';
+    ed.innerHTML = `
+      <span class="digit-label-small">13º:</span>
+      <input class="digit-input" id="ed1" maxlength="1" placeholder="0-9">
+      <span class="digit-label-small">14º:</span>
+      <input class="digit-input" id="ed2" maxlength="1" placeholder="0-9">
+    `;
+    const check2 = () => {
+      const d1 = $('ed1').value, d2 = $('ed2').value;
+      if (/^\d$/.test(d1) && /^\d$/.test(d2)) { state._pattern = prefix12 + d1 + d2 + 'xx'; enableGenerate(true); }
+      else enableGenerate(false);
+    };
+    $('ed1').addEventListener('input', check2);
+    $('ed2').addEventListener('input', check2);
+    enableGenerate(false);
+  }
+}
+
+function hideVariation() {
+  $('variation-section').classList.remove('visible');
+  $('extra-digits').className = 'extra-digits';
+}
+
+function resetVariation() {
+  hideVariation();
+  state.variation = null;
+  state._pattern  = null;
+}
+
+function resetState() {
+  state = { parsed:null, mode:null, variation:null, extraDigits:[], cards:[] };
+  setHint('Formatos aceitos: CARTÃO|MM|AA · separadores flexíveis · x = dígito variável');
+  hideVariation();
+  enableGenerate(false);
+  $('results').innerHTML = '';
+} // @vi77an
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+async function generate() {
+  const { parsed, mode } = state;
+  if (!parsed) return;
+
+  const btn = $('generate-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  // yield to browser to update UI
+  await new Promise(r => setTimeout(r, 0));
+
+  let pattern;
+  if (mode === 'complete') {
+    pattern = state._pattern;
+  } else if (mode === 'partial') {
+    pattern = parsed.card;
+  } else if (mode === 'incomplete') {
+    const missing = 16 - parsed.card.length;
+    pattern = parsed.card + 'x'.repeat(missing);
+  }
+
+  if (!pattern) {
+    showToast('Selecione uma variação.', 'err');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    return;
+  }
+
+  if (pattern.slice(0,6).includes('x')) {
+    showToast('Os 6 primeiros dígitos (BIN) devem ser fixos.', 'err');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    return;
+  }
+// @vi77an
+  let cards;
+  try {
+    cards = generateFromPattern(pattern, parsed.month, parsed.year);
+  } catch(e) {
+    showToast('Erro na geração.', 'err');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    return;
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+
+  if (!cards.length) {
+    showToast('Nenhum cartão válido gerado.', 'err');
+    return;
+  }
+
+  state.cards = cards;
+  renderResults(cards, pattern);
+  showToast(`${cards.length} cartão(ões) gerado(s)`, 'ok');
+}
+
+$('generate-btn').addEventListener('click', generate);
+
+// ── Render results ────────────────────────────────────────────────────────────
+function renderResults(cards, pattern) {
+  const el = $('results');
+  const rows = cards.map(c =>
+    `<tr onclick="copyRow(this,'${c.card_number}|${c.month}|${c.year}|${c.cvv}')">
+      <td class="card-num">${c.card_number}</td>
+      <td class="mm">${c.month}</td>
+      <td class="yy">${c.year}</td>
+      <td class="cvv">${c.cvv}</td> 
+    </tr>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-title">Resultados · <code style="color:var(--accent);font-size:.85em">${pattern}</code></span>
+        <div class="result-meta">
+          <span class="count-badge">${cards.length}</span>
+          <div class="result-actions">
+            <button class="action-btn" id="copy-all-btn" onclick="copyAll()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copiar tudo
+            </button>
+            <button class="action-btn" onclick="downloadCSV()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              CSV
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="result-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>MM</th>
+              <th>AA</th>
+              <th>CVV</th>
+            </tr>
+          </thead>
+          <tbody id="result-body">${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function copyRow(tr, text) {
+  navigator.clipboard.writeText(text).catch(()=>{});
+  tr.classList.add('flash');
+  setTimeout(() => tr.classList.remove('flash'), 350);
+  showToast('Copiado!', 'ok');
+}
+
+function copyAll() {
+  const lines = state.cards.map(c => `${c.card_number}|${c.month}|${c.year}|${c.cvv}`).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    const btn = $('copy-all-btn');
+    btn.classList.add('copied');
+    btn.querySelector('span') && (btn.querySelector('span').textContent = 'Copiado!');
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => { btn.textContent = ''; btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar tudo`; btn.classList.remove('copied'); }, 1800);
+    showToast('Tudo copiado!', 'ok');
+  }).catch(() => showToast('Erro ao copiar.', 'err'));
+}
+
+function downloadCSV() {
+  const header = 'card_number,month,year,cvv\n';
+  const rows   = state.cards.map(c => `${c.card_number},${c.month},${c.year},${c.cvv}`).join('\n');
+  const blob   = new Blob([header + rows], { type: 'text/csv' });
+  const url    = URL.createObjectURL(blob);
+  const a      = document.createElement('a');
+  a.href       = url;
+  const fileNameSafe = `vl@gen_${(state.cards[0]?.card_number || 'sem_num')}.csv`.replace(/[\/:\\?%*|"<>]/g, '_');
+  a.download   = fileNameSafe;
+  document.body.appendChild(a);
+  console.log('download attribute:', a.download);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV baixado!', 'ok');
+}
+</script>
+</body>
+</html>
+<!-- volte sempre :) #vi77an -->
