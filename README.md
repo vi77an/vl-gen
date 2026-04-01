@@ -4,7 +4,7 @@
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣧
 ⠤⣤⣤⣤⣤⣤⣤⣤⣤⣿⣿⠇⠀⢿⣿⣿⣷⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⠶⠶⠶
 ⠀⠀⠘⢿⣿⣿⣟⠛⠛⠛⠛
-⠀⠀⠁⠀⠈⠛⣿⣿⣦     ✧ card generator | a luhn-based tool ✧
+⠀⠀⠁⠀⠈⠛⣿⣿⣦     ✧ vl gen | a luhn-based tool ✧
 ⠀⠀⠀⠀⠀⠀⠀⢹⣿⡿            coded by t.me/vi77an
 ```
 
