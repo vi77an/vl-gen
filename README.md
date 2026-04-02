@@ -34,7 +34,7 @@ projeto/
 ├── vl_gen.py        ← script CLI (Python)
 ├── vl_gen.html      ← interface web (abre direto no navegador)
 └── output/           ← CSVs gerados pelo CLI
-    └── gerador.log   ← log de operações
+    └── vl_gen.log   ← log de operações
 ```
 
 > A pasta `output/` é criada automaticamente ao rodar o script.
@@ -61,7 +61,7 @@ pip install colorama tqdm
 ### cli
 
 ```
-python gerador.py
+python vl_gen.py
 ```
 
 Ou passando o cartão diretamente:
